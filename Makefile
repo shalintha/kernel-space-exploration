@@ -5,12 +5,20 @@ BUILD_DIR := build
 all:
 	@echo "Building module $(MODULE_NAME)..."
 	@mkdir -p $(BUILD_DIR)
-	@# Copy source file to build directory
-	cp $(SRC_DIR)/$(MODULE_NAME).c $(BUILD_DIR)/
-	@# Create Makefile in build directory
+
+	@# Create symlink to source file in build directory
+	@if [ ! -L $(BUILD_DIR)/$(MODULE_NAME).c ] || \
+		[ "$$(readlink $(BUILD_DIR)/$(MODULE_NAME).c)" != "../$(SRC_DIR)/$(MODULE_NAME).c" ]; then \
+			ln -sf ../$(SRC_DIR)/$(MODULE_NAME).c $(BUILD_DIR)/$(MODULE_NAME).c; \
+	fi
+
+	@# Create the Makefile dynamically in build directory
 	@echo "obj-m := $(MODULE_NAME).o" > $(BUILD_DIR)/Makefile
+	@echo "# Source: $(SRC_DIR)/$(MODULE_NAME).c" >> $(BUILD_DIR)/Makefile
 	$(MAKE) -C /lib/modules/$(shell uname -r)/build M=$(abspath $(BUILD_DIR)) modules
-	@echo "Build complete. Module is in $(BUILD_DIR)/"
+
+
+	@echo "Build complete. Module is in $(BUILD_DIR) directory"
 
 clean:
 	@if [ -d "$(BUILD_DIR)" ]; then \
