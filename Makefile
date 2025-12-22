@@ -20,4 +20,19 @@ clean:
 distclean: clean
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all clean distclean
+# Helper targets for development
+install: all
+	sudo insmod $(BUILD_DIR)/$(MODULE_NAME).ko
+	@echo "Module has been installed"
+
+remove:
+	sudo rmmod $(MODULE_NAME) || true
+
+status:
+	@lsmod | grep $(MODULE_NAME) || echo "Module '$(MODULE_NAME)' not loaded"
+
+log:
+	sudo dmesg | tail -20
+
+
+.PHONY: all clean distclean install remove status log
