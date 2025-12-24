@@ -2,23 +2,31 @@ MODULE_NAME := hello
 SRC_DIR := src
 BUILD_DIR := build
 
-all:
+all: setup
 	@echo "Building module $(MODULE_NAME)..."
-	@mkdir -p $(BUILD_DIR)
 
-	@# Create symlink to source file in build directory
-	@if [ ! -L $(BUILD_DIR)/$(MODULE_NAME).c ] || \
-		[ "$$(readlink $(BUILD_DIR)/$(MODULE_NAME).c)" != "../$(SRC_DIR)/$(MODULE_NAME).c" ]; then \
-			ln -sf ../$(SRC_DIR)/$(MODULE_NAME).c $(BUILD_DIR)/$(MODULE_NAME).c; \
-	fi
-
-	@# Create the Makefile dynamically in build directory
-	@echo "obj-m := $(MODULE_NAME).o" > $(BUILD_DIR)/Makefile
-	@echo "# Source: $(SRC_DIR)/$(MODULE_NAME).c" >> $(BUILD_DIR)/Makefile
-	$(MAKE) -C /lib/modules/$(shell uname -r)/build M=$(abspath $(BUILD_DIR)) modules
-
+	$(MAKE) -C /lib/modules/$(shell uname -r)/build \
+	         M=$(abspath $(BUILD_DIR)) modules
 
 	@echo "Build complete. Module is in $(BUILD_DIR) directory"
+
+setup:
+	@mkdir -p $(BUILD_DIR)
+	@# Create symlink to source file
+	@if [ ! -L $(BUILD_DIR)/$(MODULE_NAME).c ] || \
+	   [ "$$(readlink -f $(BUILD_DIR)/$(MODULE_NAME).c 2>/dev/null)" \
+		!= "$$(readlink -f $(SRC_DIR)/$(MODULE_NAME).c 2>/dev/null)" ]; \
+		then \
+		    ln -sf ../$(SRC_DIR)/$(MODULE_NAME).c $(BUILD_DIR)/$(MODULE_NAME).c; \
+	fi
+	@# Create symlink to Makefile.kernel
+	@if [ ! -L $(BUILD_DIR)/Makefile ] || \
+	   [ "$$(readlink -f $(BUILD_DIR)/Makefile 2>/dev/null)" \
+		!= "$$(readlink -f Makefile.kernel 2>/dev/null)" ]; \
+		then \
+		    ln -sf ../Makefile.kernel $(BUILD_DIR)/Makefile; \
+	fi
+
 
 clean:
 	@if [ -d "$(BUILD_DIR)" ]; then \

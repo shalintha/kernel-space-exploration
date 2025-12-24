@@ -1,0 +1,5 @@
+# Makefile.kernel - for building in the build directory
+obj-m := hello.o
+
+# Optional: Add any module-specific flags here
+# ccflags-y := -DDEBUG
