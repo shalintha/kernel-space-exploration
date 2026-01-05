@@ -12,13 +12,19 @@ all: setup
 
 setup:
 	@mkdir -p $(BUILD_DIR)
-	@# Create symlink to source file
-	@if [ ! -L $(BUILD_DIR)/$(MODULE_NAME).c ] || \
-	   [ "$$(readlink -f $(BUILD_DIR)/$(MODULE_NAME).c 2>/dev/null)" \
-		!= "$$(readlink -f $(SRC_DIR)/$(MODULE_NAME).c 2>/dev/null)" ]; \
-		then \
-		    ln -sf ../$(SRC_DIR)/$(MODULE_NAME).c $(BUILD_DIR)/$(MODULE_NAME).c; \
-	fi
+
+	@# Create symlinks for all source files
+		@for file in $(SRC_DIR)/*.c $(SRC_DIR)/*.h; do \
+		    if [ -f "$$file" ]; then \
+		        base=$$(basename $$file); \
+		        if [ ! -L "$(BUILD_DIR)/$$base" ] || \
+		           [ "$$(readlink -f $(BUILD_DIR)/$$base 2>/dev/null)" \
+		            != "$$(readlink -f $$file 2>/dev/null)" ]; then \
+		            ln -sf ../$(SRC_DIR)/$$base $(BUILD_DIR)/$$base; \
+		        fi; \
+		    fi; \
+		done
+
 	@# Create symlink to Makefile.kernel
 	@if [ ! -L $(BUILD_DIR)/Makefile ] || \
 	   [ "$$(readlink -f $(BUILD_DIR)/Makefile 2>/dev/null)" \

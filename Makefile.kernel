@@ -1,5 +1,6 @@
 # Makefile.kernel - for building in the build directory
 obj-m := hello.o
+hello-objs := main.o func.o
 
 # Optional: Add any module-specific flags here
 # ccflags-y := -DDEBUG
